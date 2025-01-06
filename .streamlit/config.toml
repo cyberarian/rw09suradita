@@ -1,0 +1,104 @@
+[theme]
+primaryColor = "#2E7D32"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F7FA"
+textColor = "#1A1A1A"
+font = "sans serif"
+
+[custom_css]
+css = """
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* Global font application */
+.stApp, 
+.main,
+section[data-testid="stSidebar"],
+.element-container,
+.stMarkdown,
+div {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Specific header styling for both main and sidebar */
+.main h1,
+.main h2,
+.main h3,
+.main h4,
+.main h5,
+.main h6,
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4,
+section[data-testid="stSidebar"] h5,
+section[data-testid="stSidebar"] h6,
+.css-10trblm,     /* Main title */
+.css-qrbaxs {     /* Sidebar title */
+    font-family: 'Playfair Display', serif;
+}
+
+/* Base styling */
+.stApp {
+    background-color: #FFFFFF;
+}
+
+/* Main content and sidebar */
+.main .block-container {
+    background-color: #FFFFFF;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #F5F7FA;
+    border-right: 1px solid #E0E4E8;
+}
+
+/* Interactive elements */
+.stButton button {
+    background-color: #2E7D32;
+    color: #FFFFFF;
+    border: none;
+    font-family: 'Roboto', sans-serif;
+    transition: background-color 0.3s;
+}
+
+.stButton button:hover {
+    background-color: #1B5E20;
+}
+
+/* Input fields */
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox select {
+    background-color: #FFFFFF;
+    border: 1px solid #E0E4E8;
+    color: #1A1A1A;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Chat message containers */
+.stChatMessage {
+    background-color: #F5F7FA;
+    border: 1px solid #E0E4E8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Info/Alert boxes */
+.stAlert {
+    background-color: #E8F5E9;
+    border: 1px solid #C8E6C9;
+    color: #2E7D32;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Ensure sidebar text elements use Roboto */
+section[data-testid="stSidebar"] .stMarkdown,
+section[data-testid="stSidebar"] .stFileUploader,
+section[data-testid="stSidebar"] .stSelectbox,
+section[data-testid="stSidebar"] .stTextArea,
+section[data-testid="stSidebar"] .stTextInput {
+    font-family: 'Roboto', sans-serif;
+}
+"""
