@@ -1,6 +1,6 @@
-#__import__('pysqlite3')
-#import sys
-#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import os
 import time
@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 from streamlit.runtime.caching import cache_data, cache_resource
 import toml
 import chromadb
-#import sqlite3
+import sqlite3
 
 # Set the page layout to wide
 st.set_page_config(layout="wide")
