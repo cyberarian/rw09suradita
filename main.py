@@ -1,3 +1,6 @@
+#__import__('pysqlite3')
+#import sys
+#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import os
 import time
@@ -23,6 +26,8 @@ from langchain.globals import set_verbose
 from dotenv import load_dotenv
 from streamlit.runtime.caching import cache_data, cache_resource
 import toml
+import chromadb
+#import sqlite3
 
 # Set the page layout to wide
 st.set_page_config(layout="wide")
@@ -210,67 +215,111 @@ def clear_cache():
     cache_resource.clear()
     
 def show_chat_interface(llm, prompt):
-    """Display the main chat interface"""
+    """Display the main chat interface with About and How-To tabs"""
     st.title("Chatbot RW 09 Desa Suradita, Cisauk")
     
-    # Add a greeting message
-    if not st.session_state.uploaded_file_names:
-        st.info("👋 Welcome! Please ask an admin to upload documents before starting.")
-    else:
-        st.info("👋 Wilujeng sumping! Punten naroskeun naon waé ngeunaan dokumén anu parantos diunggah.")
+    # Create three columns for the tabs
+    tab1, tab2, tab3 = st.tabs(["💬 Chat", "ℹ️ About", "📖 How-To"])
     
-    # Initialize chat history in session state if it doesn't exist
-    if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = []
-    
-    # Create a form for the chat input
-    with st.form(key='chat_form'):
-        prompt1 = st.text_input("Enter your question about the documents", key='question_input')
-        submit_button = st.form_submit_button("Submit Question")
+    with tab1:
+        # Add a greeting message
+        if not st.session_state.uploaded_file_names:
+            st.info("👋 Wilujeng sumping! Punten naroskeun naon waé ngeunaan dokumén anu parantos diunggah.")
+        else:
+            st.info("👋 Wilujeng sumping! Punten naroskeun naon waé ngeunaan dokumén anu parantos diunggah.")
         
-    # Display chat history
-    for q, a in st.session_state.chat_history:
-        st.write("Question:", q)
-        st.write("Answer:", a)
-        st.divider()
-    
-    if submit_button and prompt1:  # Only process if there's a question and the button is clicked
-        try:
-            with memory_track():
-                if st.session_state.vectorstore is None:
-                    st.session_state.vectorstore = initialize_or_load_vectorstore()
-                
-                vectorstore = st.session_state.vectorstore
-                if len(vectorstore.get()['ids']) > 0:
-                    document_chain = create_stuff_documents_chain(llm, prompt)
-                    retriever = vectorstore.as_retriever()
-                    retrieval_chain = create_retrieval_chain(retriever, document_chain)
+        # Initialize chat history in session state if it doesn't exist
+        if 'chat_history' not in st.session_state:
+            st.session_state.chat_history = []
+        
+        # Create a form for the chat input
+        with st.form(key='chat_form'):
+            prompt1 = st.text_input("Enter your question about the documents", key='question_input')
+            submit_button = st.form_submit_button("Submit Question")
+      
+        # Display chat history
+        for q, a in st.session_state.chat_history:
+            st.write("Question:", q)
+            st.write("Answer:", a)
+            st.divider()
+        
+        if submit_button and prompt1:  # Only process if there's a question and the button is clicked
+            try:
+                with memory_track():
+                    if st.session_state.vectorstore is None:
+                        st.session_state.vectorstore = initialize_or_load_vectorstore()
                     
-                    with st.spinner('Searching through documents...'):
-                        start = time.process_time()
-                        response = retrieval_chain.invoke({'input': prompt1})
-                        elapsed_time = time.process_time() - start
+                    vectorstore = st.session_state.vectorstore
+                    if len(vectorstore.get()['ids']) > 0:
+                        document_chain = create_stuff_documents_chain(llm, prompt)
+                        retriever = vectorstore.as_retriever()
+                        retrieval_chain = create_retrieval_chain(retriever, document_chain)
                         
-                        # Add the new Q&A to the chat history
-                        st.session_state.chat_history.append((prompt1, response['answer']))
-                        
-                        # Display the latest response
-                        st.write("Latest Response:")
-                        st.write(response['answer'])
-                        st.write(f"Response time: {elapsed_time:.2f} seconds")
-                        
-                        # Clear the input box by rerunning the app
-                        st.rerun()
-                else:
-                    st.warning("No documents found in the database. Please ask an admin to upload some documents.")
-        except Exception as e:
-            st.error(f"Error processing question: {str(e)}")
-            logger.error(traceback.format_exc())
+                        with st.spinner('Searching through documents...'):
+                            start = time.process_time()
+                            response = retrieval_chain.invoke({'input': prompt1})
+                            elapsed_time = time.process_time() - start
+                            
+                            # Add the new Q&A to the chat history
+                            st.session_state.chat_history.append((prompt1, response['answer']))
+                            
+                            # Display the latest response
+                            st.write("Latest Response:")
+                            st.write(response['answer'])
+                            st.write(f"Response time: {elapsed_time:.2f} seconds")
+                            
+                            # Clear the input box by rerunning the app
+                            st.rerun()
+                    else:
+                        st.warning("No documents found in the database. Please ask an admin to upload some documents.")
+            except Exception as e:
+                st.error(f"Error processing question: {str(e)}")
+                logger.error(traceback.format_exc())
+        
+        # Add a clear chat history button
+        if st.session_state.chat_history and st.button("Clear Chat History"):
+            st.session_state.chat_history = []
+            st.rerun()
     
-    # Add a clear chat history button
-    if st.session_state.chat_history and st.button("Clear Chat History"):
-        st.session_state.chat_history = []
-        st.rerun()
+    with tab2:
+        st.header("About This Chatbot")
+        st.write("""
+        🤖 Aplikasi Chatbot "rw09suradita" adalah asisten virtual AI yang dirancang untuk membantu warga RW 09 
+        Desa Suradita dalam mencari informasi terkait lingkungan di RW 09.
+        
+        ### Fitur Utama:
+        - 📚 Akses cepat ke informasi seputar RW 09
+        - 🔍 Pencarian pintar menggunakan AI
+        - 💬 Interaksi dalam Bahasa Indonesia
+        - 📋 Kemampuan memproses berbagai jenis dokumen
+        
+        ### Lokasi:
+        📍 RW 09, Desa Suradita, Kecamatan Cisauk, Kabupaten Tangerang, Banten
+        """)
+        
+    with tab3:
+        st.header("Cara Penggunaan")
+        st.write("""
+        ### Langkah-langkah penggunaan:
+        1. ❓ Ketik pertanyaan Anda di kolom chat
+        2. 🔄 Klik tombol "Submit Question"
+        3. ✨ Chatbot akan memberikan jawaban berdasarkan dokumen yang tersedia
+        4. 🧹Bersihkan riwayat percakapan dengan menekan tombol "Clear Chat History"
+        
+        ### Contoh Pertanyaan
+        * "Siapakah Ketua RW 09?"
+        * "Siapa saja pengurus RW 09?"
+        * "Saya mau pindah domisili, membuat KTP dan KK baru, bagaimana caranya?"
+        * "Listrik saya bermasalah, mati lampu"
+        * "Mesin cuci saya rusak, punya kontak service elektronik gak?"
+        * "WC saya mampet, penuh"
+        * "dll."
+        
+        ### Tips:
+        - 📝 Gunakan pertanyaan yang spesifik
+        - 🎯 Fokus pada informasi yang ada dalam dokumen
+        - 🔄 Aplikasi ini tidak merekam/menyimpan percakapan selama sesi berlangsung
+        """)
 
 def initialize_or_load_vectorstore():
     """Initialize or load the vector store for document embeddings"""
@@ -328,7 +377,7 @@ def main():
         )
         
         prompt = ChatPromptTemplate.from_template("""
-           Your role: Your name is Kang AI.
+            Your role: Your name is Pak RW.
             Language: Introduce yourself in Sundanese only for the very first interaction. Afterward, respond exclusively in Bahasa Indonesia.
             Function: Assist the user in finding relevant information within provided documents, including names, titles, locations, history, tables, images, and other relevant texts.
             Greetings: respond to the greetings accordingly.
@@ -336,8 +385,8 @@ def main():
             Guidelines:
             1. Base your responses strictly on the document's content and context. Do not add external knowledge or assumptions.
             3. Provide concise and accurate answers in one sentence unless a long-form response is requested.
-            4. Do not respond with irrelevant, misleading, or incomplete information.
-            5. Present table data in a clear and logical format for easy understanding.
+            4. Do not respond with irrelevant, wrong, misleading, or incomplete information.
+            5. Present data in a clear and logical format for easy understanding.
             6. Strive for accuracy and relevance in all responses.
             
             lang:id-ID

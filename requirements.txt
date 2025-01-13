@@ -5,6 +5,7 @@ langchain-openai
 langchain-ollama
 #pypdf
 #faiss-cpu
+chromadb
 groq
 langchain-groq
 beautifulsoup4
@@ -18,3 +19,4 @@ PyMuPDF
 stqdm
 sentence-transformers
 #huggingface-hub
+pysqlite3-binary 
